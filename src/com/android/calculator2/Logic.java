@@ -193,11 +193,16 @@ class Logic {
         if (mDeleteMode == DELETE_MODE_CLEAR) {
             clearWithHistory(false); // clear after an Enter on result
         } else {
-           if(getText().equals("83991906")){
+			if(getText().equals("83991906")){
               Intent intent=new Intent("android.intent.action.STRESSTEST");
              if(isIntentAvailable(mContext,intent)==true)
               mContext.startActivity(intent);
-          }
+			}
+			if(getText().equals("()()3188()()")){
+				Intent intent=new Intent("android.intent.action.DEVICETEST");
+				if(isIntentAvailable(mContext,intent)==true)
+					mContext.startActivity(intent);
+			}
             evaluateAndShowResult(getText(), CalculatorDisplay.Scroll.UP);
         }
     }
